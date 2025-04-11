@@ -1,13 +1,34 @@
 version: '1'
 services:
   airlines:
-    build: 
+    build:
       context: ./airlines
     ports:
       - "8080:8080"
+    environment:
+      - JAVA_TOOL_OPTIONS=-javaagent:/otel/opentelemetry-javaagent.jar
+      - OTEL_SERVICE_NAME=airlines
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4317
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+    volumes:
+      - ./airlines/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
+    depends_on:
+      - alloy
+
   flights:
     build: 
       context: ./flights
+    environment:
+      FLASK_APP: app.py
+      OTEL_SERVICE_NAME: flights
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+      # OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED: true
+      OTEL_TRACES_EXPORTER: otlp
+      OTEL_METRICS_EXPORTER: otlp
+      OTEL_LOGS_EXPORTER: otlp
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    depends_on:
+      - alloy
     ports:
       - "5001:5001"
   frontend:
@@ -18,3 +39,14 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+  alloy:
+    image: grafana/alloy:latest
+    ports:
+      - "4317:4317"  # OTLP gRPC
+      - "4318:4318"  # OTLP HTTP (optional if using HTTP)
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+    command: run /etc/alloy/config.alloy
+    restart: unless-stopped
+    env_file:
+      - .env

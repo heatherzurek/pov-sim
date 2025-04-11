@@ -23,4 +23,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
 
 # Set the command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+IgnoreUnrecognizedVMOptions", "-XX:-UseContainerSupport", "-jar", "app.jar"]
