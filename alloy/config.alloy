@@ -100,6 +100,7 @@ otelcol.processor.transform "add_resource_attributes_as_metric_attributes" {
 		statements = [
 			"set(attributes[\"deployment.environment\"], resource.attributes[\"deployment.environment\"])",
 			"set(attributes[\"service.version\"], resource.attributes[\"service.version\"])",
+			"set(attributes[\"service_name\"], resource.attributes[\"service.name\"])",
 		]
 	}
 
